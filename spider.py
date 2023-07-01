@@ -161,7 +161,7 @@ class DQB:
         with open('vedio_m3u8.txt', 'w') as f:
             f.write(content)
         if "#EXTM3U" not in content:
-            print("这不是一个m3u8的视频链接！")
+            print("未获得m3u8的视频链接！")
             return False
         # 获得.ts路径前的路径
         base_url = url.split('?')[0].replace('playlist_eof.m3u8', '')
@@ -185,6 +185,6 @@ class DQB:
         return True
 
 if __name__ == '__main__':
-    user = DQB('xxxxxxxx', 'xxxxxxx') # 此处填入你的账号密码
+    user = DQB('13886748038', '12345678') # 此处填入你的账号密码
     user.login()
     user.get_vedio_m3u8()
