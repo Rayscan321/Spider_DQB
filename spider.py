@@ -40,6 +40,7 @@ class DQB:
         self.NEEDSTOKEN = response.cookies.get_dict()['NEEDSTOKEN']
 
     def login(self):
+        self.get_login_NEEDSTOKEN()
         headers = {
             "Accept": "application/json, text/javascript, */*; q=0.01",
             "Accept-Language": "zh,en-US;q=0.9,en;q=0.8",
