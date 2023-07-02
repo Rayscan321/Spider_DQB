@@ -5,11 +5,13 @@ from lxml import etree
 import re
 
 class DQB:
+
     def __init__(self, mobile, password):
         self.mobile = mobile
         self.password = password
         self.NEEDSTOKEN = None
         self.userid = None
+        self.session = requests.Session()
     
     def get_login_NEEDSTOKEN(self):
         headers = {
@@ -34,8 +36,8 @@ class DQB:
             "_shareId": "-1",
             "_iframe": "1"
         }
-        response = requests.get(url, headers=headers, params=params)
-        return response.cookies.get_dict()['NEEDSTOKEN']
+        response = self.session.get(url, headers=headers, params=params, proxies=False)
+        self.NEEDSTOKEN = response.cookies.get_dict()['NEEDSTOKEN']
 
     def login(self):
         headers = {
@@ -52,13 +54,13 @@ class DQB:
             "Sec-Fetch-Site": "same-origin",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
             "X-Requested-With": "XMLHttpRequest",
-            "X-Token": self.get_login_NEEDSTOKEN(),
+            "X-Token": self.NEEDSTOKEN,
             "sec-ch-ua": "^\\^Chromium^^;v=^\\^112^^, ^\\^Google",
             "sec-ch-ua-mobile": "?0",
             "sec-ch-ua-platform": "^\\^Windows^^"
         }
         cookies = {
-            "NEEDSTOKEN": self.get_login_NEEDSTOKEN(),
+            "NEEDSTOKEN": self.NEEDSTOKEN,
             "username": "",
             "passname": ""
         }
@@ -76,7 +78,7 @@ class DQB:
             "type": "accountlogin",
             "openid": ""
         }
-        response = requests.post(url, headers=headers, cookies=cookies, params=params, data=data)
+        response = self.session.post(url, headers=headers, cookies=cookies, params=params, data=data)
 
         self.NEEDSTOKEN = json.loads(response.text)['data']['NEEDSTOKEN']
         self.userid = json.loads(response.text)['data']['userid']
@@ -110,7 +112,7 @@ class DQB:
             "source": "user_learn_grade_courses",
             "_shareId": "O2QUPIB748"
         }
-        response = requests.get(url, headers=headers, cookies=cookies, params=params)
+        response = self.session.get(url, headers=headers, cookies=cookies, params=params)
         html = etree.HTML(response.text)
         lessonid = html.xpath("//*[@id='lessonlist']//@data-lessonid")
         self.lessonID = []
