@@ -188,6 +188,8 @@ class DQB:
         return True
 
 if __name__ == '__main__':
-    user = DQB('13886748038', '12345678') # 此处填入你的账号密码
+    username = input("请输入手机号码:")
+    password = input("请输入密码:")
+    user = DQB(username, password) # 此处填入你的账号密码
     user.login()
     user.get_vedio_m3u8()
