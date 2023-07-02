@@ -9,9 +9,9 @@ class DQB:
     def __init__(self, mobile, password):
         self.mobile = mobile
         self.password = password
-        self.NEEDSTOKEN = None
-        self.userid = None
-        self.session = requests.Session()
+        self.__NEEDSTOKEN = None
+        self.__userid = None
+        self.__session = requests.Session()
     
     def get_login_NEEDSTOKEN(self):
         headers = {
@@ -36,8 +36,8 @@ class DQB:
             "_shareId": "-1",
             "_iframe": "1"
         }
-        response = self.session.get(url, headers=headers, params=params, proxies=False)
-        self.NEEDSTOKEN = response.cookies.get_dict()['NEEDSTOKEN']
+        response = self.__session.get(url, headers=headers, params=params, proxies=False)
+        self.__NEEDSTOKEN = response.cookies.get_dict()['NEEDSTOKEN']
 
     def login(self):
         self.get_login_NEEDSTOKEN()
@@ -55,13 +55,13 @@ class DQB:
             "Sec-Fetch-Site": "same-origin",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
             "X-Requested-With": "XMLHttpRequest",
-            "X-Token": self.NEEDSTOKEN,
+            "X-Token": self.__NEEDSTOKEN,
             "sec-ch-ua": "^\\^Chromium^^;v=^\\^112^^, ^\\^Google",
             "sec-ch-ua-mobile": "?0",
             "sec-ch-ua-platform": "^\\^Windows^^"
         }
         cookies = {
-            "NEEDSTOKEN": self.NEEDSTOKEN,
+            "NEEDSTOKEN": self.__NEEDSTOKEN,
             "username": "",
             "passname": ""
         }
@@ -79,10 +79,10 @@ class DQB:
             "type": "accountlogin",
             "openid": ""
         }
-        response = self.session.post(url, headers=headers, cookies=cookies, params=params, data=data)
+        response = self.__session.post(url, headers=headers, cookies=cookies, params=params, data=data)
 
-        self.NEEDSTOKEN = json.loads(response.text)['data']['NEEDSTOKEN']
-        self.userid = json.loads(response.text)['data']['userid']
+        self.__NEEDSTOKEN = json.loads(response.text)['data']['NEEDSTOKEN']
+        self.__userid = json.loads(response.text)['data']['userid']
 
     def __get_lesson_info(self):
         headers = {
@@ -105,7 +105,7 @@ class DQB:
         cookies = {
             "username": "",
             "passname": "",
-            "NEEDSTOKEN": self.NEEDSTOKEN,
+            "NEEDSTOKEN": self.__NEEDSTOKEN,
         }
         url = "https://dqb.yixuewk.com/course/play/form"
         params = {
@@ -113,7 +113,7 @@ class DQB:
             "source": "user_learn_grade_courses",
             "_shareId": "O2QUPIB748"
         }
-        response = self.session.get(url, headers=headers, cookies=cookies, params=params)
+        response = self.__session.get(url, headers=headers, cookies=cookies, params=params)
         html = etree.HTML(response.text)
         lessonid = html.xpath("//*[@id='lessonlist']//@data-lessonid")
         self.lessonID = []
@@ -140,7 +140,7 @@ class DQB:
         cookies = {
             "username": "",
             "passname": "",
-            "NEEDSTOKEN": self.NEEDSTOKEN,
+            "NEEDSTOKEN": self.__NEEDSTOKEN,
         }
         url = "https://dqb.yixuewk.com/course/lesson/data"
         params = {
@@ -150,7 +150,7 @@ class DQB:
             "playToken": "",
             "isApi": "0"
         }
-        response = requests.get(url, headers=headers, cookies=cookies, params=params)
+        response = self.__session.get(url, headers=headers, cookies=cookies, params=params)
         m3u8_url = str(json.loads(response.text)["lesson"]["mediaUri"])
         return m3u8_url
 
