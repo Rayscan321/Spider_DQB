@@ -1,7 +1,6 @@
 import requests
 from lxml import etree
 import json
-from lxml import etree
 import re
 
 class DQB:
@@ -10,7 +9,7 @@ class DQB:
         self.mobile = mobile
         self.password = password
         self.__NEEDSTOKEN = None
-        self.__userid = None
+        self.__userId = None
         self.__session = requests.Session()
     
     def get_login_NEEDSTOKEN(self):
@@ -84,7 +83,40 @@ class DQB:
         self.__NEEDSTOKEN = json.loads(response.text)['data']['NEEDSTOKEN']
         self.__userid = json.loads(response.text)['data']['userid']
 
+    def __get_user_info(self):
+        headers = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Language": "zh,en-US;q=0.9,en;q=0.8",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Pragma": "no-cache",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"114\", \"Google Chrome\";v=\"114\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+        }
+        cookies = {
+            "NEEDSTOKEN": self.__NEEDSTOKEN
+        }
+        url = "https://dqb.yixuewk.com/"
+        response = self.__session.get(url, headers=headers, cookies=cookies)
+        html = etree.HTML(response.text)
+        script_text = html.xpath("//script/text()")[1]
+        reg = re.compile("app\..* = .*;")
+        script_text = open("./script_text.txt", "r", encoding="utf-8").read()
+        match_list = reg.findall(script_text)
+        self.schoolId = match_list[0].split("app.schoolId = ")[1].split(";")[0]
+        self.schoolCode = match_list[1].split("app.schoolCode = ")[1].split(";")[0]
+        self.__userId = match_list[2].split("app.userId = ")[1].split(";")[0]
+        self.shareId = match_list[4].split("app.shareId = ")[1].split(";")[0]
+
     def __get_lesson_info(self):
+        self.__get_user_info()
         headers = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "zh,en-US;q=0.9,en;q=0.8",
@@ -111,7 +143,7 @@ class DQB:
         params = {
             "courseId": "258477",
             "source": "user_learn_grade_courses",
-            "_shareId": "O2QUPIB748"
+            "_shareId": self.shareId,
         }
         response = self.__session.get(url, headers=headers, cookies=cookies, params=params)
         html = etree.HTML(response.text)
@@ -144,7 +176,7 @@ class DQB:
         }
         url = "https://dqb.yixuewk.com/course/lesson/data"
         params = {
-            "_shareId": "O2QUPIB748",
+            "_shareId": self.shareId,
             "courseId": "258477",
             "lessonId": "295382",
             "playToken": "",
@@ -175,12 +207,12 @@ class DQB:
             newlist.append(i[1])
 
         #得到每一个完整视频的链接地址
-        tslisturl=[]
+        tslist_url=[]
         for i in newlist:
             tsurl=base_url+i
-            tslisturl.append(tsurl)
+            tslist_url.append(tsurl)
         #for循环获取视频文件
-        for i in tslisturl:
+        for i in tslist_url:
             res = requests.get(i, header)
             #以追加的形式保存为mp4文件
             with open('./vedio/study.mp4', 'ab+') as f:
@@ -188,8 +220,8 @@ class DQB:
         return True
 
 if __name__ == '__main__':
-    username = input("请输入手机号码:")
-    password = input("请输入密码:")
-    user = DQB(username, password) # 此处填入你的账号密码
+    # mobile = input("请输入手机号码:")
+    # password = input("请输入密码:")
+    user = DQB(mobile="13886748038", password="12345678") # 此处填入你的账号密码
     user.login()
     user.get_vedio_m3u8()
